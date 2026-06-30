@@ -5,6 +5,10 @@ Automated yield-stripping on Stellar Soroban. Deposit USDC into a **Standardized
 **Status: MVP live on Stellar testnet** (deployed 2026-06-30). We are shipping in measured milestones with the Stellar Builder Team rather than rushing to mainnet.
 
 ---
+<img width="1871" height="847" alt="image" src="https://github.com/user-attachments/assets/7f0e81cc-de6f-4e4a-b507-602ffb3fb136" />
+<img width="1865" height="813" alt="image" src="https://github.com/user-attachments/assets/413050aa-6c46-4ecf-8576-79cdd83606a5" />
+<img width="1712" height="849" alt="image" src="https://github.com/user-attachments/assets/e59348b2-5b9b-4809-966a-ae58853e4612" />
+<img width="1712" height="849" alt="image" src="https://github.com/user-attachments/assets/f4c9bcee-437f-426b-951f-a900d771d2f9" />
 
 ## Stellar Builder program
 
