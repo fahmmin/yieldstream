@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Initialize deployed contracts (run after deploy-testnet.sh)
-set -euo pipefail
+set -eu
 
 NETWORK="${STELLAR_NETWORK:-testnet}"
 IDENTITY="${DEPLOYER_IDENTITY:-default}"

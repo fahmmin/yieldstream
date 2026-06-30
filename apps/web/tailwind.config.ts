@@ -5,10 +5,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        surface: "#0f1419",
-        panel: "#1a2332",
-        accent: "#3b82f6",
-        muted: "#94a3b8",
+        canvas: "#F5F5F5",
+        ink: "#000000",
+        plum: "#2B2644",
+      },
+      maxWidth: {
+        app: "88rem",
       },
     },
   },

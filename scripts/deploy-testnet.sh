@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy YieldStream contracts to Stellar testnet
-set -euo pipefail
+set -eu
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

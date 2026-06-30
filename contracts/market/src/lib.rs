@@ -1,8 +1,8 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractclient, contracterror, contractimpl, contracttype, symbol_short, token,
-    Address, Env,
+    contract, contractclient, contracterror, contractimpl, contracttype, panic_with_error,
+    symbol_short, Address, Env,
 };
 
 pub const RATE_SCALE: i128 = 1_000_000;
@@ -98,7 +98,7 @@ fn sync_rewards(env: &Env) {
 
     let vault = vault_client(env);
     let market = market_addr(env);
-    let current_assets = assets_for_shares(env, vault.balance(market.clone()));
+    let current_assets = assets_for_shares(env, vault.balance(&market));
 
     let last: i128 = env
         .storage()
@@ -147,7 +147,7 @@ fn shares_for_assets(env: &Env, assets: i128) -> i128 {
 }
 
 fn pending_yield(env: &Env, user: &Address) -> i128 {
-    let yt_balance = yt_client(env).balance(user.clone());
+    let yt_balance = yt_client(env).balance(user);
     if yt_balance == 0 {
         return 0;
     }
@@ -245,7 +245,7 @@ impl Market {
 
         let market = market_addr(&env);
         let vault = vault_client(&env);
-        vault.transfer(user.clone(), market.clone(), sy_amount);
+        vault.transfer(&user, &market, &sy_amount);
 
         let mut locked: i128 = env
             .storage()
@@ -255,8 +255,8 @@ impl Market {
         locked += sy_amount;
         env.storage().instance().set(&DataKey::LockedShares, &locked);
 
-        pt_client(&env).mint(user.clone(), sy_amount);
-        yt_client(&env).mint(user.clone(), sy_amount);
+        pt_client(&env).mint(&user, &sy_amount);
+        yt_client(&env).mint(&user, &sy_amount);
 
         let reward_per_yt: i128 = env
             .storage()
@@ -285,17 +285,17 @@ impl Market {
 
         sync_rewards(&env);
 
-        let pt_bal = pt_client(&env).balance(user.clone());
-        let yt_bal = yt_client(&env).balance(user.clone());
+        let pt_bal = pt_client(&env).balance(&user);
+        let yt_bal = yt_client(&env).balance(&user);
         if pt_bal < amount || yt_bal < amount {
             panic_with_error!(&env, MarketError::InsufficientBalance);
         }
 
-        pt_client(&env).burn(user.clone(), amount);
-        yt_client(&env).burn(user.clone(), amount);
+        pt_client(&env).burn(&user, &amount);
+        yt_client(&env).burn(&user, &amount);
 
         let market = market_addr(&env);
-        vault_client(&env).transfer(market.clone(), user.clone(), amount);
+        vault_client(&env).transfer(&market, &user, &amount);
 
         let mut locked: i128 = env
             .storage()
@@ -336,14 +336,14 @@ impl Market {
         let shares_to_burn = shares_for_assets(&env, payout);
         let market = market_addr(&env);
         let vault = vault_client(&env);
-        let market_shares = vault.balance(market.clone());
+        let market_shares = vault.balance(&market);
         if shares_to_burn > market_shares {
             panic_with_error!(&env, MarketError::InsufficientBalance);
         }
 
-        vault.withdraw_for(market.clone(), user.clone(), shares_to_burn);
+        vault.withdraw_for(&market, &user, &shares_to_burn);
 
-        let current_assets = assets_for_shares(&env, vault.balance(market.clone()));
+        let current_assets = assets_for_shares(&env, vault.balance(&market));
         env.storage()
             .instance()
             .set(&DataKey::LastSyncedAssets, &current_assets);
@@ -374,15 +374,15 @@ impl Market {
             panic_with_error!(&env, MarketError::NotMatured);
         }
 
-        let pt_bal = pt_client(&env).balance(user.clone());
+        let pt_bal = pt_client(&env).balance(&user);
         if pt_bal < amount {
             panic_with_error!(&env, MarketError::InsufficientBalance);
         }
 
-        pt_client(&env).burn(user.clone(), amount);
+        pt_client(&env).burn(&user, &amount);
 
         let market = market_addr(&env);
-        vault_client(&env).transfer(market.clone(), user.clone(), amount);
+        vault_client(&env).transfer(&market, &user, &amount);
 
         let mut locked: i128 = env
             .storage()
@@ -419,7 +419,7 @@ impl Market {
         sync_rewards(&env);
         env.storage().instance().set(&DataKey::Matured, &true);
 
-        env.events().publish(symbol_short!("swept"), maturity);
+        env.events().publish((symbol_short!("swept"),), maturity);
     }
 }
 

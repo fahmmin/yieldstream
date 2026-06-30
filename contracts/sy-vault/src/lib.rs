@@ -1,12 +1,13 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol,
+    contract, contracterror, contractimpl, contracttype, panic_with_error, symbol_short, token,
+    Address, Env,
 };
 
 pub const RATE_SCALE: i128 = 1_000_000;
-pub const LEDGERS_PER_YEAR: u64 = 6_307_200;
-const DAY_LEDGERS: u64 = 17_280;
+pub const LEDGERS_PER_YEAR: u32 = 6_307_200;
+const DAY_LEDGERS: u32 = 17_280;
 
 #[contracttype]
 #[derive(Clone)]
@@ -35,7 +36,7 @@ pub enum VaultError {
 pub struct SyVault;
 
 fn accrue(env: &Env) {
-    let last: u64 = env
+    let last: u32 = env
         .storage()
         .instance()
         .get(&DataKey::LastAccrualLedger)
