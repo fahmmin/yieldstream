@@ -1,24 +1,26 @@
-# Testnet deployment (2026-06-30)
+# Testnet deployment (2026-07-01) — Model A
 
 Stellar CLI identities (secrets in `~/.config/stellar/identity/`):
 
 | Alias | Public key | Role |
 |-------|------------|------|
-| `yieldstream-deployer` | `GBTQDYRHLQGVWLPTC4H7NHSCSXLMC2Z7SFDM3NR52JTPW6O373GQUDQU` | Deploy + admin |
-| `yieldstream-user` | `GD7XY7GX4DQAHVFJFEHFPTNU227UVL42S3Q6KH67AN5QOMGZMDUYUGFG` | Test wallet (10k USDC minted) |
+| `yieldstream-deployer` | `GBTQDYRHLQGVWLPTC4H7NHSCSXLMC2Z7SFDM3NR52JTPW6O373GQUDQU` | Deploy + admin + treasury |
+| `yieldstream-user` | `GD7XY7GX4DQAHVFJFEHFPTNU227UVL42S3Q6KH67AN5QOMGZMDUYUGFG` | Test wallet |
 | `yieldstream-usdc-issuer` | `GDJ7BKYQOP2TKEC5YVWPZRMLSR3NTEOLAZAUVVAE3ZB3BUJAT56TKQOJ` | Test USDC issuer |
 
-## Contracts
+## Contracts (Model A — upfront monthly yield)
 
 | | Contract ID |
 |---|-------------|
 | USDC (SAC) | `CBG5KUNJANZUUZ6ODHQ3O2RHQ6WYQLIGOFZZNTEVCUJEKVZ2OQIOLOFC` |
-| SY Vault | `CDYDL57HJKWHHFSICODHFTULNAPISJAQCITTDNZ6AQYXZKX6FTV4NY3U` |
-| PT Token | `CDVW6GYSK4PQDT6TLDO5YVT7SGUH6CXW2MKL3FUKTVPEXMPBDMUDZ7A4` |
-| YT Token | `CBTRDER523K34BTKRKRWS7666TLQGAT4G2CKBEWPNAWZDKKJI7FWRQOS` |
-| Market | `CCSXQJXXJIJY6I5J776P4QW3NDF2YSSVPOKNQM7Y3MKFZMQHU6XIVOOY` |
+| SY Vault | `CDP6IPENVGPMBWB3FKSBUKTKUZM55AXVL4TEQFKAYRDIHX2PZ5T6GXZO` |
+| PT Token | `CA64K5JEUCX6XJACSLDS425TWBJCSG3C5JM25NJNAVY5N4LBGSFX6IK3` |
+| YT Token | `CBU4OGVNYHXOCSNFEHVCQ4YP644KFKWA2QWHNYNLVNSZ5JACXTE7VSGM` |
+| Market | `CB5YBEVT4L4KSOWFRIVPWQQZS4RKXFWL4YDYKHMRON3E6Y2IGGGKFYWD` |
 
-- **Maturity ledger:** `3373149` (~10k ledgers from deploy)
+- **Maturity ledger:** `3390165`
+- **Fee:** 1000 bps (10% to treasury)
+- **PT/YT transfers:** disabled (hard lock)
 - **Market minter** set on PT + YT
 
 ## UI
@@ -27,8 +29,15 @@ Stellar CLI identities (secrets in `~/.config/stellar/identity/`):
 cd apps/web && npm run dev
 ```
 
-Import `yieldstream-user` into Freighter (testnet) or use deployer. `.env.local` is pre-filled.
+Import `yieldstream-user` into Freighter (testnet). `.env.local` is pre-filled.
 
 ## Explorer
 
-- [Market on Stellar Lab](https://lab.stellar.org/r/testnet/contract/CCSXQJXXJIJY6I5J776P4QW3NDF2YSSVPOKNQM7Y3MKFZMQHU6XIVOOY)
+- [Market on Stellar Lab](https://lab.stellar.org/r/testnet/contract/CB5YBEVT4L4KSOWFRIVPWQQZS4RKXFWL4YDYKHMRON3E6Y2IGGGKFYWD)
+- [SY Vault](https://lab.stellar.org/r/testnet/contract/CDP6IPENVGPMBWB3FKSBUKTKUZM55AXVL4TEQFKAYRDIHX2PZ5T6GXZO)
+
+## Previous deployment (2026-06-30, legacy accrual model)
+
+Superseded — do not use with current UI:
+
+| Market (old) | `CCSXQJXXJIJY6I5J776P4QW3NDF2YSSVPOKNQM7Y3MKFZMQHU6XIVOOY` |

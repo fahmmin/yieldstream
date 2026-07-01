@@ -1,8 +1,26 @@
 # YieldStream
 
-Automated yield-stripping on Stellar Soroban. Deposit USDC into a **Standardized Yield (SY) vault**, **strip** into **PT** (principal) + **YT** (yield rights), **claim** yield, **merge** back, or **redeem PT** at maturity.
+**Model A — upfront monthly yield** on Stellar Soroban. Deposit USDC, **lock principal** until maturity, and receive **this month's yield paid immediately** (90% user / 10% treasury). Subsequent months are claimed via `pay_monthly_yield` when due.
 
-**Status: MVP live on Stellar testnet** (deployed 2026-06-30). We are shipping in measured milestones with the Stellar Builder Team rather than rushing to mainnet.
+**Status: Model A contracts ready** — requires **redeploy** on testnet (see Quick start). Previous testnet deployment used accrual-based `claim_yield` + merge; Model A replaces that with hard lock + upfront payout.
+
+---
+
+## Model A (current)
+
+| Step | On-chain action | User experience |
+|------|-----------------|-----------------|
+| 1 | `deposit_and_lock(usdc)` | Deposit + lock principal; **first month yield paid upfront** |
+| 2 | Wait ~1 month (`MONTH_LEDGERS`) | — |
+| 3 | `pay_monthly_yield()` | Next month's yield paid early (90/10 split) |
+| 4 | Maturity + `redeem_pt()` | Principal returned as SY/USDC |
+
+**Hard lock rules:**
+- `merge` is **disabled** (always reverts `HardLocked`)
+- PT/YT **transfers disabled** after init
+- Yield cap enforced on-chain so total upfront payouts cannot exceed expected term yield
+
+**Keeper:** set `MONTHLY_PAYOUT_ENABLED=true` and `MONTHLY_PAYOUT_USERS=G...,G...` for admin batch payouts.
 
 ---
 
@@ -65,9 +83,9 @@ We are not optimizing for speed over correctness. The testnet MVP proves the ful
 | Contract | Role |
 |----------|------|
 | **sy-vault** | Holds USDC; mints/burns SY shares; fixed-rate accrual (MVP) |
-| **market** | Strip SY → PT+YT, merge, claim yield on YT, redeem PT at maturity |
-| **pt-token** | Principal token; 1:1 with stripped SY; redeemable after maturity |
-| **yt-token** | Yield token; accrues claimable yield until maturity |
+| **market** | `deposit_and_lock`, strip, **upfront monthly yield**, `pay_monthly_yield`, redeem PT at maturity; **merge disabled** |
+| **pt-token** | Principal token; transfers lockable; redeemable after maturity |
+| **yt-token** | Yield rights token; transfers lockable |
 
 ### Off-chain services
 
@@ -76,31 +94,32 @@ We are not optimizing for speed over correctness. The testnet MVP proves the ful
 | **apps/web** | Next.js app — landing page + `/treasury` wallet flows via Freighter |
 | **services/keeper** | Polls ledger, extends TTL, sweeps maturity; hooks for Blend + OwlPay |
 
-### Contract invariants
+### Contract invariants (Model A)
 
-- `strip(n)` → `n` PT + `n` YT
-- `merge(n)` → `n` SY (before maturity)
-- Post-maturity: PT redeems 1:1 USDC; YT can no longer claim
+- `deposit_and_lock(n)` → lock `n` PT + `n` YT + pay month-1 yield upfront
+- `merge` → always `HardLocked`
+- `pay_monthly_yield` → pays monthly gross × (1 − fee_bps) to user when due
+- Post-maturity: `redeem_pt` returns principal; YT burned with PT
 
 ---
 
 ## Testnet deployment
 
-Network: **Stellar testnet** · Deployed: **2026-06-30** · Maturity ledger: **3373149**
+Network: **Stellar testnet** · Deployed: **2026-07-01** (Model A) · Maturity ledger: **3390165**
 
 Canonical addresses are in [`deployments/testnet.json`](deployments/testnet.json). Summary:
 
 | Contract | ID |
 |----------|-----|
 | USDC (SAC) | `CBG5KUNJANZUUZ6ODHQ3O2RHQ6WYQLIGOFZZNTEVCUJEKVZ2OQIOLOFC` |
-| SY Vault | `CDYDL57HJKWHHFSICODHFTULNAPISJAQCITTDNZ6AQYXZKX6FTV4NY3U` |
-| PT Token | `CDVW6GYSK4PQDT6TLDO5YVT7SGUH6CXW2MKL3FUKTVPEXMPBDMUDZ7A4` |
-| YT Token | `CBTRDER523K34BTKRKRWS7666TLQGAT4G2CKBEWPNAWZDKKJI7FWRQOS` |
-| Market | `CCSXQJXXJIJY6I5J776P4QW3NDF2YSSVPOKNQM7Y3MKFZMQHU6XIVOOY` |
+| SY Vault | `CDP6IPENVGPMBWB3FKSBUKTKUZM55AXVL4TEQFKAYRDIHX2PZ5T6GXZO` |
+| PT Token | `CA64K5JEUCX6XJACSLDS425TWBJCSG3C5JM25NJNAVY5N4LBGSFX6IK3` |
+| YT Token | `CBU4OGVNYHXOCSNFEHVCQ4YP644KFKWA2QWHNYNLVNSZ5JACXTE7VSGM` |
+| Market | `CB5YBEVT4L4KSOWFRIVPWQQZS4RKXFWL4YDYKHMRON3E6Y2IGGGKFYWD` |
 
 Test identities and explorer links: [`deployments/TESTNET.md`](deployments/TESTNET.md)
 
-- [Market on Stellar Lab](https://lab.stellar.org/r/testnet/contract/CCSXQJXXJIJY6I5J776P4QW3NDF2YSSVPOKNQM7Y3MKFZMQHU6XIVOOY)
+- [Market on Stellar Lab](https://lab.stellar.org/r/testnet/contract/CB5YBEVT4L4KSOWFRIVPWQQZS4RKXFWL4YDYKHMRON3E6Y2IGGGKFYWD)
 
 Classic test asset: `USDC:GDJ7BKYQOP2TKEC5YVWPZRMLSR3NTEOLAZAUVVAE3ZB3BUJAT56TKQOJ`
 
@@ -194,14 +213,13 @@ cd services/keeper && npm install && npm run dev
 
 ---
 
-## E2E flow (testnet)
+## E2E flow (testnet, Model A)
 
 1. Fund wallet with XLM (Friendbot) + testnet USDC
-2. **Deposit** USDC → SY shares
-3. **Strip** SY → PT + YT
-4. Wait / advance ledgers → **Claim** yield on YT
-5. **Merge** PT+YT → SY (before maturity)
-6. Or wait for maturity → keeper `sweep_matured` → **Redeem PT**
+2. **Redeploy** contracts + run `init-contracts` (treasury + fee_bps + disable PT/YT transfers)
+3. **Deposit & lock** USDC → receive **upfront month-1 yield** in wallet
+4. Advance ~1 month (or wait) → **Claim monthly yield**
+5. At maturity → keeper `sweep_matured` → **Redeem PT** for principal
 
 ---
 

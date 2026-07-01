@@ -30,10 +30,19 @@ stellar contract invoke --id $env:YT_TOKEN_ID --network $Network --source $Ident
 
 $Current = stellar network fetch --network $Network ledger
 $Maturity = [int]$Current + [int]$MaturityOffset
+$Treasury = if ($env:TREASURY_ADDRESS) { $env:TREASURY_ADDRESS } else { $env:ADMIN_ADDRESS }
+$FeeBps = if ($env:FEE_BPS) { $env:FEE_BPS } else { "1000" }
 
-Write-Host "==> Init market (maturity ledger $Maturity)"
+Write-Host "==> Init market (maturity ledger $Maturity, treasury $Treasury, fee ${FeeBps}bps)"
 stellar contract invoke --id $env:MARKET_ID --network $Network --source $Identity `
   -- __constructor --admin $env:ADMIN_ADDRESS --sy_vault $env:SY_VAULT_ID `
-  --pt_token $env:PT_TOKEN_ID --yt_token $env:YT_TOKEN_ID --maturity_ledger $Maturity
+  --pt_token $env:PT_TOKEN_ID --yt_token $env:YT_TOKEN_ID --maturity_ledger $Maturity `
+  --treasury $Treasury --fee_bps $FeeBps
+
+Write-Host "==> Disable PT/YT transfers (hard lock)"
+stellar contract invoke --id $env:PT_TOKEN_ID --network $Network --source $Identity `
+  -- set_transfers_enabled --enabled false
+stellar contract invoke --id $env:YT_TOKEN_ID --network $Network --source $Identity `
+  -- set_transfers_enabled --enabled false
 
 Write-Host "Done. Copy IDs to apps/web/.env.local"

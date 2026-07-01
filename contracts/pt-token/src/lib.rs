@@ -15,6 +15,7 @@ pub enum DataKey {
     Name,
     Symbol,
     Decimals,
+    TransfersEnabled,
 }
 
 #[contracterror]
@@ -24,6 +25,7 @@ pub enum TokenError {
     Unauthorized = 1,
     InvalidAmount = 2,
     InsufficientBalance = 3,
+    TransfersDisabled = 4,
 }
 
 const DAY_LEDGERS: u32 = 17_280;
@@ -67,6 +69,22 @@ impl PtToken {
         env.storage().instance().set(&DataKey::Name, &name);
         env.storage().instance().set(&DataKey::Symbol, &symbol);
         env.storage().instance().set(&DataKey::Decimals, &decimals);
+        env.storage().instance().set(&DataKey::TransfersEnabled, &true);
+    }
+
+    pub fn set_transfers_enabled(env: Env, enabled: bool) {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth();
+        env.storage()
+            .instance()
+            .set(&DataKey::TransfersEnabled, &enabled);
+    }
+
+    pub fn transfers_enabled(env: Env) -> bool {
+        env.storage()
+            .instance()
+            .get(&DataKey::TransfersEnabled)
+            .unwrap_or(true)
     }
 
     pub fn set_minter(env: Env, minter: Address) {
@@ -145,6 +163,14 @@ impl PtToken {
 
     pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
         from.require_auth();
+        if !env
+            .storage()
+            .instance()
+            .get::<_, bool>(&DataKey::TransfersEnabled)
+            .unwrap_or(true)
+        {
+            panic_with_error!(&env, TokenError::TransfersDisabled);
+        }
         if amount <= 0 {
             panic_with_error!(&env, TokenError::InvalidAmount);
         }

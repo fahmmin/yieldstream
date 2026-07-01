@@ -40,6 +40,14 @@ export function HeroSection() {
             principal and yield tokens, and let fixed-rate earnings work in the
             background.
           </p>
+          <p
+            className="mb-8 max-w-md text-sm leading-relaxed text-black/50 md:text-base"
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
+            }}
+          >
+            Or skip the pennies — ball big on Polymarket. Coming soon.
+          </p>
           <PillButton label="Launch app" href="/treasury" />
           <BrandMarquee />
         </div>

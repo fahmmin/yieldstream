@@ -4,6 +4,7 @@ import { LogoIcon } from "./LogoIcon";
 const NAV_LINKS = [
   { label: "Network", href: "#network" },
   { label: "Treasury", href: "/treasury" },
+  { label: "Ball Big", href: "#ball-big" },
   { label: "Ecosystem", href: "#ecosystem" },
   { label: "Docs", href: "https://developers.stellar.org/docs" },
   { label: "Help", href: "#help" },

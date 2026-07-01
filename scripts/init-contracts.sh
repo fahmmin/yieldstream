@@ -31,10 +31,18 @@ stellar contract invoke --id "$YT" --network "$NETWORK" --source "$IDENTITY" \
 
 CURRENT=$(stellar network fetch --network "$NETWORK" ledger)
 MATURITY=$((CURRENT + MATURITY_OFFSET))
+TREASURY="${TREASURY_ADDRESS:-$ADMIN}"
+FEE_BPS="${FEE_BPS:-1000}"
 
-echo "==> Init market (maturity ledger $MATURITY)"
+echo "==> Init market (maturity ledger $MATURITY, treasury $TREASURY, fee ${FEE_BPS}bps)"
 stellar contract invoke --id "$MARKET" --network "$NETWORK" --source "$IDENTITY" \
   -- __constructor --admin "$ADMIN" --sy_vault "$SY_VAULT" --pt_token "$PT" \
-  --yt_token "$YT" --maturity_ledger "$MATURITY"
+  --yt_token "$YT" --maturity_ledger "$MATURITY" --treasury "$TREASURY" --fee_bps "$FEE_BPS"
+
+echo "==> Disable PT/YT transfers (hard lock)"
+stellar contract invoke --id "$PT" --network "$NETWORK" --source "$IDENTITY" \
+  -- set_transfers_enabled --enabled false
+stellar contract invoke --id "$YT" --network "$NETWORK" --source "$IDENTITY" \
+  -- set_transfers_enabled --enabled false
 
 echo "Done. Copy IDs to apps/web/.env.local"

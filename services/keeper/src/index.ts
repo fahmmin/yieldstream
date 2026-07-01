@@ -8,6 +8,7 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 import { loadAnchorConfig, routeYieldToInrBank } from "./anchor.js";
+import { runMonthlyPayouts } from "./monthly-payout.js";
 
 const RPC_URL = process.env.SOROBAN_RPC_URL ?? "https://soroban-testnet.stellar.org";
 const PASSPHRASE = process.env.STELLAR_NETWORK === "mainnet" ? Networks.PUBLIC : Networks.TESTNET;
@@ -16,6 +17,7 @@ const SY_VAULT = process.env.SY_VAULT_ID ?? "";
 const MARKET = process.env.MARKET_ID ?? "";
 const POLL_MS = Number(process.env.KEEPER_POLL_MS ?? 60_000);
 const ANCHOR_ENABLED = process.env.ANCHOR_ROUTING_ENABLED === "true";
+const MONTHLY_PAYOUT_ENABLED = process.env.MONTHLY_PAYOUT_ENABLED === "true";
 
 function log(scope: string, message: string, data?: Record<string, unknown>) {
   console.log(
@@ -99,6 +101,15 @@ async function anchorRoutingCheck(server: rpc.Server, keeper: Keypair) {
   void server;
 }
 
+/** Model A: batch monthly upfront yield for registered users */
+async function monthlyPayoutCheck(server: rpc.Server, keeper: Keypair) {
+  if (!MONTHLY_PAYOUT_ENABLED) {
+    log("payout", "monthly_disabled");
+    return;
+  }
+  await runMonthlyPayouts(server, keeper);
+}
+
 async function tick(server: rpc.Server, keeper: Keypair) {
   await extendTtl(server, keeper);
   try {
@@ -107,6 +118,7 @@ async function tick(server: rpc.Server, keeper: Keypair) {
     log("keeper", "sweep_not_ready", { error: String(e) });
   }
   await blendAdapterSync();
+  await monthlyPayoutCheck(server, keeper);
   await anchorRoutingCheck(server, keeper);
 }
 

@@ -201,3 +201,87 @@ export function AlertBanner({
     </div>
   );
 }
+
+export function ComingSoonBadge({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full bg-[#2B2644] px-3 py-1 text-xs font-medium text-white ${className}`}
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60 opacity-75" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+      </span>
+      Coming Soon
+    </span>
+  );
+}
+
+export function ChoiceCard({
+  title,
+  description,
+  icon,
+  selected,
+  disabled,
+  comingSoon,
+  onClick,
+  variant = "light",
+  footer,
+}: {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  selected?: boolean;
+  disabled?: boolean;
+  comingSoon?: boolean;
+  onClick?: () => void;
+  variant?: "light" | "dark";
+  footer?: ReactNode;
+}) {
+  const isDark = variant === "dark";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`group relative flex min-h-[220px] flex-col items-start justify-between rounded-2xl p-6 text-left transition-all duration-200 md:min-h-[260px] md:p-8 ${
+        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+      } ${
+        isDark
+          ? `bg-[#2B2644] text-white ${selected ? "ring-2 ring-white/40" : "hover:bg-[#342d52]"}`
+          : `border bg-white shadow-sm ${
+              selected
+                ? "border-black/20 ring-2 ring-black/10"
+                : "border-black/5 hover:border-black/10 hover:shadow-md"
+            }`
+      }`}
+    >
+      {comingSoon && (
+        <div className="absolute right-4 top-4 md:right-6 md:top-6">
+          <ComingSoonBadge />
+        </div>
+      )}
+      <span
+        className={`flex h-12 w-12 items-center justify-center rounded-full ${
+          isDark ? "bg-white/10 text-white" : "bg-black text-white"
+        }`}
+      >
+        {icon}
+      </span>
+      <div>
+        <p
+          className={`text-xl font-medium md:text-2xl ${isDark ? "text-white" : "text-black"}`}
+          style={{ letterSpacing: "-0.02em" }}
+        >
+          {title}
+        </p>
+        <p
+          className={`mt-2 text-sm leading-relaxed ${isDark ? "text-white/60" : "text-black/60"}`}
+        >
+          {description}
+        </p>
+        {footer && <div className="mt-4">{footer}</div>}
+      </div>
+    </button>
+  );
+}

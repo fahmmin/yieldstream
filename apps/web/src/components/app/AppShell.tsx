@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   ArrowLeftRight,
+  Flame,
   LayoutDashboard,
   Menu,
   Settings,
@@ -26,6 +27,7 @@ const NAV_ITEMS: Array<{
   { href: "/treasury", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/treasury/vault", label: "Vault", icon: Vault },
   { href: "/treasury/market", label: "Market", icon: ArrowLeftRight },
+  { href: "/treasury/ball-big", label: "Ball Big", icon: Flame },
   { href: "/treasury/activity", label: "Activity", icon: Activity },
   { href: "/treasury/settings", label: "Settings", icon: Settings },
 ];
@@ -70,6 +72,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           >
             <Icon className="h-5 w-5 shrink-0" />
             {item.label}
+            {item.href === "/treasury/ball-big" && (
+              <span className="ml-auto rounded-full bg-[#2B2644]/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#2B2644]">
+                Soon
+              </span>
+            )}
           </Link>
         );
       })}

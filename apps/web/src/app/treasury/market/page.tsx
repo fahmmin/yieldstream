@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ArrowLeftRight,
-  Gift,
-  Merge,
-  RotateCcw,
-} from "lucide-react";
+import { ArrowDownToLine, Gift, Lock, RotateCcw } from "lucide-react";
 import { useTreasuryApp } from "@/contexts/TreasuryAppContext";
 import {
   ActionTile,
@@ -20,81 +15,80 @@ import {
 
 export default function MarketPage() {
   const t = useTreasuryApp();
-  const [amount, setAmount] = useState("10");
+  const [amount, setAmount] = useState("100");
 
   return (
     <>
       <PageHeader
-        eyebrow="PT / YT Market"
-        title="Market"
-        description="Strip SY into principal and yield tokens, claim accrued yield, merge back, or redeem PT at maturity."
+        eyebrow="Locked savings"
+        title="Your lock"
+        description="Model A: monthly yield paid upfront. Principal is hard-locked until maturity."
       />
+
+      <AlertBanner>
+        Early withdrawal is disabled. Your deposit is locked as PT until the maturity ledger.
+        Merge is not available.
+      </AlertBanner>
 
       {t.matured && (
         <AlertBanner>
-          Market has matured. You can redeem PT 1:1 for USDC. YT can no longer claim yield.
+          Market has matured. Redeem PT 1:1 for USDC. Monthly yield payments have ended.
         </AlertBanner>
       )}
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Your PT" value={t.formatAmount(t.ptBalance.toString())} />
-        <StatCard label="Your YT" value={t.formatAmount(t.ytBalance.toString())} accent />
+        <StatCard label="Locked PT" value={t.formatAmount(t.ptBalance.toString())} accent />
+        <StatCard label="YT (yield rights)" value={t.formatAmount(t.ytBalance.toString())} />
         <StatCard
-          label="Claimable"
-          value={`${t.formatAmount(t.claimable.toString())} USDC`}
+          label="Total yield received"
+          value={`${t.formatAmount(t.totalYieldPaid.toString())} USDC`}
         />
         <StatCard
-          label="Maturity"
-          value={t.matured ? "Reached" : "Active"}
-          hint={`Ledger ${t.maturity || "—"}`}
-          accent
+          label="Next payout"
+          value={t.canPayMonthly ? "Due now" : "Not due"}
+          hint={`Fee: ${t.feeBps / 100}% to treasury`}
         />
       </div>
 
       <Panel className="mb-8">
         <h2 className="mb-2 text-2xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
-          Transaction amount
+          Add to your lock
         </h2>
         <p className="mb-6 text-sm text-black/60">
-          Used for strip, merge, and redeem PT operations.
+          Each deposit locks principal and pays this month&apos;s yield on the new amount immediately.
         </p>
-        <AmountInput
-          label="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
+        <AmountInput label="USDC amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
       </Panel>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <ActionTile
-          title="Strip SY"
-          description="Split SY into equal PT and YT — separate principal from yield rights."
-          icon={<ArrowLeftRight className="h-5 w-5" />}
+          title="Deposit & lock more"
+          description="Deposit USDC, auto-strip, and receive upfront monthly yield on the new deposit."
+          icon={<ArrowDownToLine className="h-5 w-5" />}
           disabled={!t.address || t.busy || t.matured}
-          onClick={() => t.strip(amount).catch(console.error)}
+          onClick={() => t.depositAndLock(amount).catch(() => {})}
         />
         <ActionTile
-          title="Claim yield"
-          description="Withdraw accrued yield from your YT position to your wallet."
+          title="Claim monthly yield"
+          description="Collect the next month's upfront yield when the 30-day period has passed."
           icon={<Gift className="h-5 w-5" />}
           variant="dark"
-          disabled={!t.address || t.busy || t.claimable === 0n}
-          onClick={() => t.claimYield().catch(console.error)}
+          disabled={!t.address || t.busy || !t.canPayMonthly}
+          onClick={() => t.payMonthlyYield().catch(() => {})}
         />
         <ActionTile
-          title="Merge PT + YT"
-          description="Recombine principal and yield tokens back into SY shares."
-          icon={<Merge className="h-5 w-5" />}
-          disabled={!t.address || t.busy || t.matured}
-          onClick={() => t.merge(amount).catch(console.error)}
+          title="Principal locked"
+          description="PT/YT transfers are disabled. Merge is permanently blocked (Model A)."
+          icon={<Lock className="h-5 w-5" />}
+          disabled
         />
         <ActionTile
-          title="Redeem PT"
-          description="After maturity, redeem PT 1:1 for underlying USDC from the vault."
+          title="Redeem at maturity"
+          description="After maturity, burn PT+YT and receive your principal back as SY/USDC."
           icon={<RotateCcw className="h-5 w-5" />}
           variant="dark"
           disabled={!t.address || t.busy || !t.matured}
-          onClick={() => t.redeemPt(amount).catch(console.error)}
+          onClick={() => t.redeemPt(amount).catch(() => {})}
         />
       </div>
 
@@ -103,19 +97,19 @@ export default function MarketPage() {
           className="w-full"
           size="xl"
           disabled={!t.address || t.busy || t.matured}
-          onClick={() => t.strip(amount).catch(console.error)}
+          onClick={() => t.depositAndLock(amount).catch(() => {})}
         >
-          <ArrowLeftRight className="h-6 w-6" />
-          Strip {amount} SY
+          <ArrowDownToLine className="h-6 w-6" />
+          Lock {amount} USDC
         </PrimaryButton>
         <PrimaryButton
           className="w-full"
           size="xl"
-          disabled={!t.address || t.busy || t.claimable === 0n}
-          onClick={() => t.claimYield().catch(console.error)}
+          disabled={!t.address || t.busy || !t.canPayMonthly}
+          onClick={() => t.payMonthlyYield().catch(() => {})}
         >
           <Gift className="h-6 w-6" />
-          Claim all yield
+          Claim monthly yield
         </PrimaryButton>
       </div>
     </>

@@ -15,12 +15,11 @@ export function InfoSection() {
             >
               Meet YieldStream.
             </h2>
-            <PillButton label="Discover it" href="/treasury" size="base" />
+            <PillButton label="Start saving" href="/treasury" size="base" />
           </div>
           <p className="text-2xl leading-relaxed text-black/70 md:text-3xl">
-            A fixed-rate SY vault on Soroban that strips yield into tradeable PT and
-            YT — your USDC stays productive while you choose how to deploy principal
-            and yield.
+            Lock your USDC, keep your principal safe, and get this month&apos;s yield paid
+            upfront — 90% to you, 10% to the protocol treasury.
           </p>
         </div>
 
@@ -38,11 +37,11 @@ export function InfoSection() {
                 className="text-2xl font-medium leading-snug text-black"
                 style={{ letterSpacing: "-0.02em" }}
               >
-                Yield that strips
+                Yield paid early
               </h3>
               <p className="max-w-xs text-base text-black/70">
-                Deposit USDC into the SY vault and split principal from yield rights
-                on demand — one deposit, two composable positions.
+                Deposit and lock — your first month&apos;s yield lands in your wallet
+                immediately, before the month even accrues on-chain.
               </p>
             </div>
           </div>
@@ -52,13 +51,13 @@ export function InfoSection() {
               className="text-2xl font-medium text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              Always liquid,
+              Principal
               <br />
-              always fixed.
+              hard-locked
             </h3>
             <p className="text-base text-white/60">
-              Keep dollar-anchored exposure with on-demand strip, merge, and redeem
-              — no opaque lockups or hidden waits.
+              Your deposit stays locked until maturity. No merge, no early exit —
+              only yield is paid out monthly.
             </p>
           </div>
 
@@ -67,13 +66,13 @@ export function InfoSection() {
               className="text-2xl font-medium text-white"
               style={{ letterSpacing: "-0.02em" }}
             >
-              Fully
+              Keeper
               <br />
               automated
             </h3>
             <p className="text-base text-white/60">
-              Keeper services handle TTL extensions, maturity sweeps, and protocol
-              hooks — YieldStream runs in the background for you.
+              Monthly payout keeper batches yield for registered users. TTL and
+              maturity sweeps run in the background.
             </p>
           </div>
         </div>

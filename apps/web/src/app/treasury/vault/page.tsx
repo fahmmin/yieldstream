@@ -19,25 +19,36 @@ export default function VaultPage() {
   return (
     <>
       <PageHeader
-        eyebrow="SY Vault"
-        title="Vault"
-        description="Deposit USDC into the standardized yield vault. Shares represent your claim on vault assets and fixed-rate yield."
+        eyebrow="Wallet"
+        title="Fund & lock"
+        description="Get testnet USDC, then deposit and lock from the dashboard for upfront monthly yield."
       />
 
       {!t.configured && (
         <AlertBanner>
-          Contracts not configured — set env vars before depositing.
+          Contracts not configured — redeploy with Model A init and set env vars.
         </AlertBanner>
       )}
 
-      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard
-          label="Total vault assets"
-          value={`${t.formatAmount(t.totalAssets.toString())} USDC`}
+          label="Your USDC"
+          value={`${t.formatAmount(t.usdcBalance.toString())} USDC`}
+          hint={t.usdcReady ? "Trustline active" : "Trustline required"}
         />
-        <StatCard label="Your SY shares" value={t.formatAmount(t.syBalance.toString())} accent />
+        <StatCard
+          label="Locked principal"
+          value={`${t.formatAmount(t.lockedPrincipal.toString())} USDC`}
+          accent
+        />
+        <StatCard
+          label="Yield received"
+          value={`${t.formatAmount(t.totalYieldPaid.toString())} USDC`}
+        />
         <StatCard label="Fixed rate" value="8% APY" hint="Testnet MVP" />
       </div>
+
+      {t.error && <AlertBanner variant="error">{t.error}</AlertBanner>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <Panel className="lg:col-span-3">
@@ -47,16 +58,17 @@ export default function VaultPage() {
             </span>
             <div>
               <h2 className="text-2xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
-                Deposit USDC
+                Testnet USDC
               </h2>
               <p className="mt-2 max-w-lg text-base leading-relaxed text-black/60">
-                Mint SY shares 1:1 against deposited USDC. Your position compounds at the vault fixed rate until you strip or redeem.
+                Enable the USDC trustline and request faucet funds. Then use Deposit &amp; lock on
+                the dashboard to lock principal and receive upfront yield.
               </p>
             </div>
           </div>
 
           <AmountInput
-            label="Deposit amount"
+            label="Lock amount (use on dashboard)"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
@@ -64,16 +76,38 @@ export default function VaultPage() {
           <PrimaryButton
             className="mt-8 w-full"
             size="xl"
-            disabled={!t.address || t.busy || !t.configured}
-            onClick={() => t.deposit(amount).catch(console.error)}
+            disabled={!t.address || t.busy || !t.configured || t.matured}
+            onClick={() => t.depositAndLock(amount).catch(() => {})}
           >
             <ArrowDownToLine className="h-6 w-6" />
-            {t.busy ? "Processing…" : "Deposit to vault"}
+            {t.busy ? "Processing…" : "Deposit & lock"}
           </PrimaryButton>
+
+          {t.address && !t.usdcReady && (
+            <button
+              type="button"
+              className="mt-3 w-full rounded-full border border-black/15 px-8 py-4 text-base font-medium text-black transition-colors hover:bg-black/5 disabled:opacity-40"
+              disabled={t.busy}
+              onClick={() => t.enableUsdc().catch(() => {})}
+            >
+              Enable testnet USDC (trustline)
+            </button>
+          )}
+
+          {t.address && (
+            <button
+              type="button"
+              className="mt-3 w-full rounded-full border border-black/15 px-8 py-4 text-base font-medium text-black transition-colors hover:bg-black/5 disabled:opacity-40"
+              disabled={t.busy}
+              onClick={() => t.requestTestUsdc().catch(() => {})}
+            >
+              Get test USDC (1000)
+            </button>
+          )}
 
           {!t.address && (
             <p className="mt-4 text-center text-sm text-black/50">
-              Connect Freighter to deposit.
+              Connect Freighter to continue.
             </p>
           )}
         </Panel>
@@ -85,19 +119,19 @@ export default function VaultPage() {
                 <TrendingUp className="h-5 w-5" />
               </span>
               <h2 className="mt-6 text-2xl font-medium text-white" style={{ letterSpacing: "-0.02em" }}>
-                How the vault works
+                Model A flow
               </h2>
               <ul className="mt-6 space-y-4 text-base leading-relaxed text-white/60">
-                <li>Deposit USDC → receive SY shares backed by vault assets.</li>
-                <li>Fixed 8% APY accrues to the vault on testnet.</li>
-                <li>Strip SY anytime into PT (principal) + YT (yield rights).</li>
-                <li>Merge PT + YT back into SY before maturity.</li>
+                <li>Deposit USDC → auto-lock as PT + YT.</li>
+                <li>This month&apos;s yield paid upfront (90% user / 10% treasury).</li>
+                <li>Principal hard-locked — no merge until maturity.</li>
+                <li>Claim next month&apos;s yield when due; redeem PT at maturity.</li>
               </ul>
             </div>
             <div className="mt-8 rounded-xl bg-white/10 p-4">
-              <p className="text-sm text-white/50">Your balance</p>
+              <p className="text-sm text-white/50">Wallet USDC</p>
               <p className="mt-1 text-3xl font-medium text-white" style={{ letterSpacing: "-0.03em" }}>
-                {t.formatAmount(t.syBalance.toString())} SY
+                {t.formatAmount(t.usdcBalance.toString())}
               </p>
             </div>
           </div>

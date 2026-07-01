@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { InfoSection } from "@/components/landing/InfoSection";
+import { BallBigSection } from "@/components/landing/BallBigSection";
 import { BackedBySection } from "@/components/landing/BackedBySection";
 import { UseCasesSection } from "@/components/landing/UseCasesSection";
 
@@ -12,6 +13,7 @@ export default function LandingPage() {
         <HeroSection />
       </div>
       <InfoSection />
+      <BallBigSection />
       <BackedBySection />
       <UseCasesSection />
     </div>
